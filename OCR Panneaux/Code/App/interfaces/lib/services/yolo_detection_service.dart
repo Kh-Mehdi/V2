@@ -1,7 +1,9 @@
-import 'dart:convert';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
+// HTTP import supprimé car on utilise maintenant TensorFlow Lite local
+// import 'package:http/http.dart' as http;
+import 'unified_detection_service.dart';
 
+// Version héritée pour compatibilité - redirige vers UnifiedDetectionService
 class Detection {
   final String className;
   final double confidence;
@@ -14,6 +16,30 @@ class Detection {
     required this.bbox,
     this.center,
   });
+
+  // Convertir depuis UnifiedDetectionResult
+  factory Detection.fromUnified(UnifiedDetectionResult unified) {
+    return Detection(
+      className: unified.className,
+      confidence: unified.confidence,
+      bbox: {
+        'x': unified.bbox.length > 0 ? unified.bbox[0] : 0.0,
+        'y': unified.bbox.length > 1 ? unified.bbox[1] : 0.0,
+        'width': unified.bbox.length > 2 ? unified.bbox[2] : 0.0,
+        'height': unified.bbox.length > 3 ? unified.bbox[3] : 0.0,
+      },
+      center: {
+        'x': unified.bbox.length > 0
+            ? unified.bbox[0] +
+                (unified.bbox.length > 2 ? unified.bbox[2] / 2 : 0)
+            : 0.0,
+        'y': unified.bbox.length > 1
+            ? unified.bbox[1] +
+                (unified.bbox.length > 3 ? unified.bbox[3] / 2 : 0)
+            : 0.0,
+      },
+    );
+  }
 
   factory Detection.fromJson(Map<String, dynamic> json) {
     return Detection(
@@ -54,46 +80,47 @@ class DetectionResponse {
   }
 }
 
+// Service YOLO mis à jour pour utiliser UnifiedDetectionService (local)
 class YOLODetectionService {
   static const String baseUrl =
-      'http://localhost:5000'; // Changez l'IP si nécessaire
+      'local://unified-service'; // Plus de serveur HTTP
 
+  // Vérifier l'état du service (maintenant local)
   static Future<bool> checkServerHealth() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/health'),
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['model_loaded'] == true;
-      }
-      return false;
+      // Vérifier si le service unifié est initialisé
+      bool isReady = UnifiedDetectionService.isReady;
+      print('Service local status: ${isReady ? "✅ Ready" : "❌ Not ready"}');
+      print('Current mode: ${UnifiedDetectionService.currentMode}');
+      return isReady;
     } catch (e) {
-      print('Erreur de connexion au serveur: $e');
+      print('Erreur lors de la vérification du service local: $e');
       return false;
     }
   }
 
+  // Détection depuis une image (maintenant local avec TensorFlow Lite)
   static Future<DetectionResponse> detectFromImage(Uint8List imageBytes) async {
     try {
-      final base64Image = base64Encode(imageBytes);
+      print('🔍 Détection locale avec UnifiedDetectionService...');
 
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/detect'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'image': base64Image,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
+      final unifiedResults =
+          await UnifiedDetectionService.detectFromBytes(imageBytes);
 
-      final responseData = json.decode(response.body);
-      return DetectionResponse.fromJson(responseData);
+      // Convertir les résultats vers le format legacy
+      final detections = unifiedResults
+          .map((result) => Detection.fromUnified(result))
+          .toList();
+
+      print('✅ Détection locale réussie: ${detections.length} objets trouvés');
+
+      return DetectionResponse(
+        success: true,
+        detections: detections,
+        timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
     } catch (e) {
-      print('Erreur lors de la détection: $e');
+      print('❌ Erreur lors de la détection locale: $e');
       return DetectionResponse(
         success: false,
         detections: [],
@@ -102,29 +129,29 @@ class YOLODetectionService {
     }
   }
 
+  // Détection temps réel (maintenant local)
   static Future<DetectionResponse> detectRealtime(
     Uint8List frameBytes, {
     String? timestamp,
   }) async {
     try {
-      final base64Frame = base64Encode(frameBytes);
+      print('🎯 Détection temps réel locale...');
 
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/detect_realtime'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'frame': base64Frame,
-              'timestamp':
-                  timestamp ?? DateTime.now().millisecondsSinceEpoch.toString(),
-            }),
-          )
-          .timeout(const Duration(seconds: 3));
+      final unifiedResults =
+          await UnifiedDetectionService.detectFromBytes(frameBytes);
 
-      final responseData = json.decode(response.body);
-      return DetectionResponse.fromJson(responseData);
+      final detections = unifiedResults
+          .map((result) => Detection.fromUnified(result))
+          .toList();
+
+      return DetectionResponse(
+        success: true,
+        detections: detections,
+        timestamp:
+            timestamp ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      );
     } catch (e) {
-      print('Erreur lors de la détection temps réel: $e');
+      print('❌ Erreur lors de la détection temps réel locale: $e');
       return DetectionResponse(
         success: false,
         detections: [],

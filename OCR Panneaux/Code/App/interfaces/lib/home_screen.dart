@@ -6,7 +6,7 @@ import 'dart:async';
 import 'widgets/camera_preview.dart';
 import 'panneau_detected_screen.dart';
 import 'panneau_detail_screen.dart';
-import 'services/offline_detection_service.dart';
+import 'services/unified_detection_service.dart';
 import 'diagnostic_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -46,10 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeOfflineService() async {
-    final isReady = await OfflineDetectionService.initialize();
-    setState(() => _offlineServiceReady = isReady);
+    // Initialiser le service unifié
+    bool serviceReady = await UnifiedDetectionService.initialize();
+    setState(() => _offlineServiceReady = serviceReady);
 
-    if (!isReady) {
+    if (!serviceReady) {
       _showServiceError();
     } else if (_isCameraInitialized) {
       _startRealTimeDetection();
@@ -96,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final bytes = await image.readAsBytes();
       print('📸 Image capturée: ${bytes.length} bytes');
 
-      final detections = await OfflineDetectionService.detectFromBytes(bytes);
+      final detections = await _detectWithBestService(bytes);
       print('🎯 Détections trouvées: ${detections.length}');
 
       for (final detection in detections) {
@@ -118,11 +119,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showDetectionResults(List<OfflineDetectionResult> detections) {
+  // Utiliser le service unifié de détection
+  Future<List<UnifiedDetectionResult>> _detectWithBestService(
+      Uint8List bytes) async {
+    return await UnifiedDetectionService.detectFromBytes(bytes);
+  }
+
+  void _showDetectionResults(List<UnifiedDetectionResult> detections) {
     print('🔍 Analyse des détections...');
     for (final detection in detections) {
       print(
-          '   Évaluation: ${detection.className} - ${(detection.confidence * 100).toStringAsFixed(1)}%');
+          '   Évaluation: ${detection.className} - ${(detection.confidence * 100).toStringAsFixed(1)}% (${detection.source})');
       if (detection.confidence > 0.6) {
         print('✅ Détection validée! Affichage du popup...');
         // Seuil de confiance élevé pour éviter les faux positifs
@@ -134,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showDetectionPopup(OfflineDetectionResult detection) {
+  void _showDetectionPopup(UnifiedDetectionResult detection) {
     showOverlayNotification((context) {
       return PanneauDetectedScreen(
         panneauName: detection.className,
@@ -145,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToDetails(
-      BuildContext context, OfflineDetectionResult detection) {
+      BuildContext context, UnifiedDetectionResult detection) {
     Navigator.push(
       context,
       MaterialPageRoute(

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -11,32 +9,107 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  Future<void> _redirectToStripeCheckout() async {
+  bool _isProcessing = false;
+
+  Future<void> _simulatePayment() async {
+    setState(() {
+      _isProcessing = true;
+    });
+
     try {
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/create-checkout-session'),
-        headers: {'Content-Type': 'application/json'},
-      );
+      // Simulation d'un processus de paiement local
+      await Future.delayed(Duration(seconds: 2));
 
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        final checkoutUrl = jsonResponse['url'];
-        final uri = Uri.parse(checkoutUrl);
-
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          throw 'Impossible d\'ouvrir le lien : \$checkoutUrl';
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur Stripe: \${response.body}")),
+      // Afficher un dialogue de succès
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('Paiement Simulé'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('✅ Paiement de 10 USD simulé avec succès'),
+                  SizedBox(height: 8),
+                  Text('🎯 Fonctionnalités débloquées:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('• Détection avancée illimitée'),
+                  Text('• Sauvegarde des résultats'),
+                  Text('• Mode premium activé'),
+                  SizedBox(height: 12),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '💡 Mode démo: Dans une vraie application, intégrez Stripe ou un autre service de paiement.',
+                      style:
+                          TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fermer le dialogue
+                    Navigator.of(context)
+                        .pop(); // Retourner à l'écran précédent
+                  },
+                  child: Text('Continuer'),
+                ),
+              ],
+            );
+          },
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur: \$e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur de simulation: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openStripeInfo() async {
+    // Ouvrir une page d'information sur Stripe pour les développeurs
+    const url = 'https://stripe.com/docs/checkout/quickstart';
+    final uri = Uri.parse(url);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Impossible d'ouvrir le lien Stripe")),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur: $e")),
+        );
+      }
     }
   }
 
@@ -44,10 +117,74 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Paiement")),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _redirectToStripeCheckout,
-          child: const Text("Payer 10 USD"),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.payment,
+              size: 80,
+              color: Colors.blue,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Service Premium',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Débloquez toutes les fonctionnalités avancées',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 30),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blue),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Text('✅ Détection illimitée'),
+                  Text('✅ Sauvegarde des résultats'),
+                  Text('✅ Mode premium'),
+                  Text('✅ Support prioritaire'),
+                ],
+              ),
+            ),
+            SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: _isProcessing ? null : _simulatePayment,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+              child: _isProcessing
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 10),
+                        Text("Traitement..."),
+                      ],
+                    )
+                  : Text("Payer 10 USD (Simulation)"),
+            ),
+            SizedBox(height: 20),
+            TextButton(
+              onPressed: _openStripeInfo,
+              child: Text(
+                'ℹ️ Voir la documentation Stripe',
+                style: TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
         ),
       ),
     );

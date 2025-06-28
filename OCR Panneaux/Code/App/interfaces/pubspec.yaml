@@ -35,4 +35,4 @@ flutter:
   assets:
     - assets/logo.png
     - assets/labels.txt
-    # - assets/best_93.tflite  # Optionnel - décommentez après conversion
+    - assets/best_93.tflite # Modèle TensorFlow Lite pour la détection
