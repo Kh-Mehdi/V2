@@ -1,0 +1,10 @@
+panneau_stop
+panneau_vitesse_30
+panneau_vitesse_50
+panneau_vitesse_90
+panneau_direction_droite
+panneau_direction_gauche
+panneau_interdiction_stationnement
+panneau_obligation_droite
+panneau_danger_virage
+panneau_priorite

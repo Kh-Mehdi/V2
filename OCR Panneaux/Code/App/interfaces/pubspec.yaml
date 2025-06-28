@@ -1,0 +1,39 @@
+name: interfaces
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^2.27.0
+  cloud_firestore: ^4.9.1
+  firebase_auth: ^4.17.3
+  flutter_stripe: 10.1.1
+  http: ^0.13.5
+  url_launcher: ^6.2.5
+  camera: ^0.10.0+1
+  flutter_tts: ^4.2.3
+  overlay_support: ^2.1.0
+  js: ^0.6.7
+  # Dépendances pour le mode hors ligne
+  tflite_flutter: ^0.10.4
+  image: ^4.0.17
+
+dependency_overrides:
+  stripe_platform_interface: 11.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+    - assets/labels.txt
+    # - assets/best_93.tflite  # Optionnel - décommentez après conversion

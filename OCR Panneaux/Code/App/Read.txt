@@ -1,0 +1,69 @@
+# 🚀 SCRIPTS DE LANCEMENT - DETECTION PANNEAUX
+
+## 📁 Scripts disponibles
+
+### 🎯 **launch_offline.bat** (NOUVEAU - RECOMMANDÉ!)
+Lance l'application en mode hors ligne :
+- ✅ **Pas besoin d'internet**
+- ✅ **Pas de serveur Flask nécessaire**
+- ✅ **Plus rapide et plus sûr**
+- ✅ **Détection locale directe**
+
+### 🔄 **convert_model.bat** (CONVERSION)
+Convertit le modèle pour le mode hors ligne :
+- ✅ Convertit best_93.pt vers TensorFlow Lite
+- ✅ Copie automatiquement vers Flutter
+- ✅ Une seule fois nécessaire
+
+### 🎯 **launch_all.bat** (ANCIEN - AVEC FLASK)
+Lance avec serveur Flask (mode legacy) :
+- ✅ Serveur Flask (Backend)  
+- ✅ Application Flutter (Frontend)
+- ❌ Nécessite connexion réseau
+
+### ⚡ **start_flask_only.bat** (TESTS FLASK)
+Lance seulement le serveur Flask pour debug
+
+### 🛑 **stop_all.bat** (NETTOYAGE)
+Arrête tous les serveurs
+
+## 🎮 Guide d'utilisation
+
+### � Mode hors ligne (RECOMMANDÉ)
+1. **Double-cliquez** sur `launch_offline.bat`
+2. **L'application démarre** directement
+3. **Détection locale** sans serveur
+4. **Fonctionne partout** (même sans internet)
+
+### 🔄 Première fois avec modèle converti
+1. **Exécutez** `convert_model.bat` (une seule fois)
+2. **Puis** `launch_offline.bat`
+3. **Profitez** de la détection TensorFlow Lite
+
+### � Mode Flask (Legacy)
+1. **Double-cliquez** sur `launch_all.bat`
+2. **Attendez** que le serveur Flask démarre
+3. **Gardez la fenêtre ouverte**
+
+## 🏆 COMPARAISON
+
+| Caractéristique | Mode Hors Ligne | Mode Flask |
+|------------------|----------------|------------|
+| Internet requis  | ❌ NON         | ✅ OUI     |
+| Serveur externe  | ❌ NON         | ✅ OUI     |
+| Vitesse          | 🚀 Rapide      | 🐌 Plus lent |
+| Simplicité       | ✅ Simple      | ❌ Complexe |
+| Sécurité         | 🔒 Élevée      | ⚠️ Moyenne |
+| Déploiement      | 📱 Direct      | 🖥️ Serveur requis |
+
+## 💡 RECOMMANDATION FINALE
+
+**Utilisez le mode hors ligne** (`launch_offline.bat`) pour :
+- ✅ **Production** 
+- ✅ **Démonstrations**
+- ✅ **Utilisation mobile**
+- ✅ **Performance optimale**
+
+**Utilisez le mode Flask** seulement pour :
+- 🔧 **Développement/Debug**
+- 🧪 **Tests de modèles**
