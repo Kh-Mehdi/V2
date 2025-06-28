@@ -13,13 +13,12 @@ dependencies:
   cloud_firestore: ^4.9.1
   firebase_auth: ^4.17.3
   flutter_stripe: 10.1.1
-  http: ^0.13.5
   url_launcher: ^6.2.5
   camera: ^0.10.0+1
   flutter_tts: ^4.2.3
   overlay_support: ^2.1.0
   js: ^0.6.7
-  # Dépendances pour le mode hors ligne
+  # Dépendances pour le mode hors ligne TensorFlow Lite
   tflite_flutter: ^0.10.4
   image: ^4.0.17
 
