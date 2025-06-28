@@ -1,13 +1,11 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'widgets/camera_preview.dart';
-import 'panneau_detected_screen.dart';
-import 'panneau_detail_screen.dart';
 import 'services/unified_detection_service.dart';
 import 'diagnostic_screen.dart';
+import 'utils/detection_popup_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -142,29 +140,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showDetectionPopup(UnifiedDetectionResult detection) {
-    showOverlayNotification((context) {
-      return PanneauDetectedScreen(
-        panneauName: detection.className,
-        confidence: detection.confidence,
-        onDetailsPressed: () => _navigateToDetails(context, detection),
-      );
-    });
+    DetectionPopupUtils.showDetectionDialog(context, detection);
   }
 
-  void _navigateToDetails(
-      BuildContext context, UnifiedDetectionResult detection) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PanneauDetailScreen(
-          panneauName: detection.className,
-          description:
-              "Panneau détecté avec ${(detection.confidence * 100).toStringAsFixed(1)}% de confiance",
-          confidence: detection.confidence,
-        ),
-      ),
-    );
-  }
+
 
   @override
   void dispose() {

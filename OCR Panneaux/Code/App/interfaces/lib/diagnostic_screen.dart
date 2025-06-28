@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:typed_data';
 import 'services/unified_detection_service.dart';
+import 'utils/detection_popup_utils.dart';
 
 class DiagnosticScreen extends StatefulWidget {
   @override
@@ -74,6 +75,22 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
       for (var result in results) {
         _addLog(
             "   🎯 ${result.className}: ${(result.confidence * 100).toStringAsFixed(1)}% (${result.source})");
+        
+        // Afficher popup si confiance élevée
+        if (result.confidence > 0.6) {
+          _addLog("   ✅ Confiance élevée - Affichage du popup de détection");
+          // Délai pour que l'utilisateur puisse lire les logs
+          Future.delayed(Duration(seconds: 1), () {
+            if (mounted) {
+              DetectionPopupUtils.showDetectionDialog(context, result);
+            }
+          });
+          break; // Afficher seulement la première détection
+        }
+      }
+      
+      if (results.isEmpty) {
+        _addLog("   ℹ️ Aucune détection dans cette tentative");
       }
     } catch (e) {
       _addLog("   ❌ Erreur test détection: $e");
@@ -118,6 +135,33 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
         _status = "⚠️ Problèmes détectés - Vérifiez les logs";
       }
     });
+  }
+
+  Future<void> _testDetectionWithPopup() async {
+    _addLog("🧪 Test manuel de détection avec popup...");
+    
+    try {
+      // Forcer une détection pour le test
+      Uint8List testData = Uint8List.fromList([255, 255, 255, 255]);
+      final results = await UnifiedDetectionService.detectFromBytes(testData);
+      
+      if (results.isNotEmpty) {
+        _addLog("   ✅ Détection trouvée pour le test");
+        DetectionPopupUtils.showDetectionDialog(context, results.first);
+      } else {
+        // Créer une détection factice pour le test
+        final fakeDetection = UnifiedDetectionResult(
+          className: 'panneau_stop',
+          confidence: 0.85,
+          bbox: [100.0, 100.0, 200.0, 200.0],
+          source: 'test',
+        );
+        _addLog("   🧪 Création d'une détection factice pour le test");
+        DetectionPopupUtils.showDetectionDialog(context, fakeDetection);
+      }
+    } catch (e) {
+      _addLog("   ❌ Erreur test popup: $e");
+    }
   }
 
   @override
@@ -177,8 +221,10 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
 
             SizedBox(height: 20),
 
-            // Bouton de relance
-            Row(
+            // Boutons de contrôle
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
               children: [
                 ElevatedButton.icon(
                   onPressed: _isChecking ? null : _runDiagnostic,
@@ -189,7 +235,6 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-                SizedBox(width: 10),
                 ElevatedButton.icon(
                   onPressed: () {
                     setState(() {
@@ -200,6 +245,15 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
                   label: Text('Effacer les logs'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isChecking ? null : _testDetectionWithPopup,
+                  icon: Icon(Icons.visibility),
+                  label: Text('Test Popup'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
                   ),
                 ),
